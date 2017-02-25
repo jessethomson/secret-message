@@ -13,7 +13,7 @@
 		function _unlockMessage() {
 
 			var input = $scope.inputs.join("");
-			$http.get("/unlock/" + input)
+			$http.get("/unlock/" + input + "?groupId=" + $scope.group)
 				.then(function(response) {
 					$scope.result = response.data
 				}, function(err) {
@@ -22,7 +22,7 @@
 		}
 
 		function _isValid() {
-			return $scope.inputs.length === 4;
+			return $scope.inputs.length === 4 && $scope.group;
 		}
 
 	});

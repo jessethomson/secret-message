@@ -1,18 +1,23 @@
 extends layout
 
 block content
-	.row(ng-app="MyApp")
-		.col-lg-4.col-lg-offset-4.text-center(ng-controller="MyController")
-			.panel.panel-default
-				.panel-heading 
-					h2 Enter Pin
-				.panel-body
-					input(type="text" maxlength="1" ng-model="inputs[0]")
-					input(type="text" maxlength="1" ng-model="inputs[1]")
-					input(type="text" maxlength="1" ng-model="inputs[2]")
-					input(type="text" maxlength="1" ng-model="inputs[3]")
-					button.btn.btn-default(type="button" ng-disabled="!isValid()" value="Unlock" style="margin:15px;" ng-click="unlockMessage()") Unlock
+	div(ng-app="MyApp" ng-controller="MyController")
+		.row(style="margin-bottom:15px;")
+			.col-lg-2
+				label Group
+				input.form-control(type="text" ng-model="group")
+		.row
+			.col-lg-4.col-lg-offset-4.text-center
+				.panel.panel-default
+					.panel-heading 
+						h2 Enter Pin
+					.panel-body
+						input.pin-input(type="text" maxlength="1" ng-model="inputs[0]")
+						input.pin-input(type="text" maxlength="1" ng-model="inputs[1]")
+						input.pin-input(type="text" maxlength="1" ng-model="inputs[2]")
+						input.pin-input(type="text" maxlength="1" ng-model="inputs[3]")
+						button.btn.btn-default(type="button" ng-disabled="!isValid()" value="Unlock" style="margin:15px;" ng-click="unlockMessage()") Unlock
 
-			.panel(ng-show="result" ng-class="{'panel-success': result.success, 'panel-danger': !result.success}")
-				.panel-body
-					h4 {{ result.message }}
+				.panel(ng-show="result" ng-class="{'panel-success': result.success, 'panel-danger': !result.success}")
+					.panel-body
+						h4 {{ result.message }}

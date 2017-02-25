@@ -1,58 +1,114 @@
 var express = require('express');
 var router = express.Router();
+var request = require("request");
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res) {
   res.render('index', { title: 'Secret Message' });
 });
 
-var rejectMessages = [
+var groups = {};
+var MAX_ATTEMPTS = 5;
+var REJECT_MESSAGES = [
 	"Yeah... no...",
 	"Ha. Good one.",
 	"You wish.",
 	"Seriously??",
 	"Are you even trying?",
-	"This isn't the way..."
+	"This isn't the way...",
+	"You're done for...",
+	"Maybe try not guessing?"
+];
+var SECRETS = [
+	{
+		MESSAGE: "Secret message number 1",
+		PIN: "1234"
+	},
+	{
+		MESSAGE: "Secret message number 2",
+		PIN: "1235"
+	},
+	{
+		MESSAGE: "Secret message number 3",
+		PIN: "1236"
+	}
 ];
 
-var MAX_ATTEMPTS = 5;
-var SECRET_PIN = "1234";
-var SECRET_MESSAGE = "Here is the secret you were looking for!";
-var incorrectAttempts = 0;
+function findGroup(req, res, next) {
+	if(req.query.groupId) {
+		if(!groups[req.query.groupId]) {
+			createNewGroup(req.query.groupId);
+		}
+		req.group = groups[req.query.groupId];
+		next();
+	}
+	else {
+		res.status(400).json({message: "BAD REQUEST: Missing or invalid group value"});
+	}
+};
 
-router.get("/unlock/:pin", function(req, res, next) {
+router.get("/unlock/:pin", findGroup, function(req, res) {
 
 	var response = {};
-	if(incorrectAttempts > MAX_ATTEMPTS || (incorrectAttempts == MAX_ATTEMPTS && req.params.pin != SECRET_PIN)) {
-		incorrectAttempts++;
+	if(req.group.incorrectAttempts > MAX_ATTEMPTS || (req.group.incorrectAttempts == MAX_ATTEMPTS && req.params.pin != SECRETS[req.group.secretIndex].PIN)) {
+		req.group.incorrectAttempts++;
 		response.success = false;
 		response.message = "PERMANENTLY LOCKED! YOU LOSE!!";
 	}
-	else if(incorrectAttempts >= (MAX_ATTEMPTS - 3) && req.params.pin != SECRET_PIN) {
-		incorrectAttempts++;
+	else if(req.group.incorrectAttempts >= (MAX_ATTEMPTS - 3) && req.params.pin != SECRETS[req.group.secretIndex].PIN) {
+		req.group.incorrectAttempts++;
 		response.success = false;
-		var attemptsLeft = (MAX_ATTEMPTS - incorrectAttempts + 1);
+		var attemptsLeft = (MAX_ATTEMPTS - req.group.incorrectAttempts + 1);
 		response.message = "Warning: You have " + attemptsLeft + " more attempt" + (attemptsLeft !== 1 ? "s" : "") + " before you are locked out";
 	}
-	else if(req.params.pin == SECRET_PIN) {
-		incorrectAttempts = 0; // reset incorrectAttempts
+	else if(req.params.pin == SECRETS[req.group.secretIndex].PIN) {
 		response.success = true;
-		response.message = SECRET_MESSAGE;
+		response.message = SECRETS[req.group.secretIndex].MESSAGE;
+		if(req.group.secretIndex < (SECRETS.length - 1)) {
+			req.group.secretIndex++;
+		}
+		else {
+			req.group.secretIndex = 0;
+		}
+		req.group.incorrectAttempts = 0;
 	}
 	else {
-		incorrectAttempts++;
+		req.group.incorrectAttempts++;
 		response.success = false;
-		response.message = rejectMessages[Math.floor(rejectMessages.length * Math.random())];
+		response.message = REJECT_MESSAGES[Math.floor(REJECT_MESSAGES.length * Math.random())];
 	}
 	res.json(response);
+
 });
 
-router.get("/reset", function(req, res, next) {
-	incorrectAttempts = 0;
-	res.status(200).json({message:"server reset"});
+router.get("/groups", function(req, res) {
+	res.json(groups);
 });
 
-router.get("/max/:value", function(req, res, next) {
+router.get("/groups/:id", function(req, res) {
+	if(groups[req.params.id]) {
+		res.json(groups[req.params.id]);
+	}
+	else {
+		res.status(400).json({status: "error", message: "Group " + req.params.id + " does not exist!"});
+	}
+});
+
+router.get("/groups/:id/delete", function(req, res) {
+	if(groups[req.params.id]) {
+		groups[req.params.id] = undefined;
+		res.json({status: "success", message: "Group " + req.params.id + " was successfully deleted"});
+	}
+	else {
+		res.status(400).json({status: "error", message: "Group " + req.params.id + " does not exist!"});
+	}
+});
+
+router.get("/max", function(req, res) {
+	res.json({maxAttempts: MAX_ATTEMPTS});
+});
+
+router.get("/max/:value", function(req, res) {
 	var value = parseInt(req.params.value);
 	if(value && value >= 3) {
 		MAX_ATTEMPTS = value
@@ -63,26 +119,72 @@ router.get("/max/:value", function(req, res, next) {
 	}
 });
 
-router.get("/pin/:value", function(req, res, next) {
-	var newPin = req.params.value;
-
-	if(newPin && newPin.length == 4) {
-		SECRET_PIN = newPin
-		res.status(200).json({message:"pin changed to " + SECRET_PIN});
+router.get("/secrets/:index", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	if(secretIndex) {
+		res.json(SECRETS[secretIndex]);
 	}
 	else {
-		res.status(400).json({message: "BAD REQUEST: Missing or invalid pin value"});
+		res.status(400).json({message: "BAD REQUEST: Missing or invalid secret index"});
 	}
 });
 
-router.get("/message/:value", function(req, res, next) {
-	if(req.params.value) {
-		SECRET_MESSAGE = req.params.value
-		res.status(200).json({message:"secret message set to " + SECRET_MESSAGE});
+router.get("/secrets/:index/pin", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	if(secretIndex) {
+		res.json({pin:SECRETS[secretIndex].PIN});
+	}
+	else {
+		res.status(400).json({message: "BAD REQUEST: Missing or invalid secret index"});
+	}
+});
+
+router.get("/secrets/:index/pin/:newPin", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	var newPin = req.params.newPin;
+	if(newPin && secretIndex) {
+		SECRETS[secretIndex].PIN = newPin;
+		res.status(200).json({status: "success", pin: SECRETS[secretIndex].PIN});
+	}
+	else {
+		res.status(400).json({status: "error", message: "BAD REQUEST: Missing or invalid pin value"});
+	}
+});
+
+router.get("/secrets/:index/message", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	if(secretIndex) {
+		res.json({message:SECRETS[secretIndex].MESSAGE});
+	}
+	else {
+		res.status(400).json({message: "BAD REQUEST: Missing or invalid secret index"});
+	}
+});
+
+router.get("/secrets/:index/message/:newMessage", function(req, res) {
+
+	var secretIndex = req.params.index;
+	var newMessage = req.params.newMessage;
+	if(newMessage && secretIndex) {
+		SECRETS[secretIndex].MESSAGE = newMessage;
+		res.status(200).json({message:"secret message set to " + SECRETS[secretIndex].MESSAGE});
 	}
 	else {
 		res.status(400).json({message: "BAD REQUEST: Missing or invalid message value"});
 	}
 });
+
+function createNewGroup(groupId) {
+	groups[groupId] = {
+		id: groupId,
+		secretIndex: 0,
+		incorrectAttempts: 0
+	}
+	console.log("group " + groupId + " successfully created!");
+}
 
 module.exports = router;
