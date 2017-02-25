@@ -1,0 +1,18 @@
+extends layout
+
+block content
+	.row(ng-app="MyApp")
+		.col-xs-4.col-xs-offset-4.text-center(ng-controller="MyController")
+			.panel.panel-default
+				.panel-heading 
+					h2 Enter Pin
+				.panel-body
+					input(type="text" maxlength="1" ng-model="inputs[0]")
+					input(type="text" maxlength="1" ng-model="inputs[1]")
+					input(type="text" maxlength="1" ng-model="inputs[2]")
+					input(type="text" maxlength="1" ng-model="inputs[3]")
+					button.btn.btn-default(type="button" ng-disabled="!isValid()" value="Unlock" style="margin:15px;" ng-click="unlockMessage()") Unlock
+
+			.panel(ng-show="result" ng-class="{'panel-success': result.success, 'panel-danger': !result.success}")
+				.panel-body
+					h4 {{ result.message }}
