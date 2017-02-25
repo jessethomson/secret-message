@@ -1,6 +1,6 @@
 (function() {
 
-	var app = angular.module("MyApp", []);
+	var app = angular.module("MyApp", ['ngSanitize']);
 
 	app.controller("MyController", function($scope, $http) {
 
@@ -20,6 +20,7 @@
 					$scope.result = response.data
 					if(response.data.success) {
 						$scope.secretNumber = response.data.secretIndex + 1;
+						$scope.hint = ""
 					}
 				}, function(err) {
 					console.log(err);
@@ -50,6 +51,7 @@
 					if(response.data.hint) {
 						$scope.hint = response.data.hint;
 					}
+					console.log(response.data)
 				}, function(err) {
 					console.log(err);
 				});

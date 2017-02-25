@@ -18,21 +18,25 @@ var REJECT_MESSAGES = [
 	"You're done for...",
 	"Maybe try not guessing?"
 ];
+
+//shapes
+// book
+// rot1
 var SECRETS = [
 	{
-		MESSAGE: "Secret message number 1",
-		PIN: "1234",
-		HINT: "hmm"
+		MESSAGE: "Good job. Time to <i>work together</i>. The next one shouldn’t be too hard <i>4</i> you.",
+		PIN: "7286",
+		HINT: "Let's make sure that brain of yours is in good <i>shape</i>"
 	},
 	{
-		MESSAGE: "Secret message number 2",
-		PIN: "1235",
-		HINT: "okay"
+		MESSAGE: "Nice work. Now you're just <i>one off</i> from the last answer.",
+		PIN: "6821",
+		HINT: "Good place to find knowledge."
 	},
 	{
-		MESSAGE: "Secret message number 3",
-		PIN: "1236",
-		HINT: "yeah"
+		MESSAGE: "[ INSERT NEXT STEP HERE]",
+		PIN: "4253",
+		HINT: "The letters are closer than you think..."
 	}
 ];
 

@@ -26,9 +26,9 @@ block content
 
 				.panel(ng-show="result" ng-class="{'panel-success': result.success, 'panel-danger': !result.success}")
 					.panel-body
-						h4 {{ result.message }}
+						h4(ng-bind-html="result.message")
 		.row(ng-show="hint")
 			.col-lg-4.col-lg-offset-4.text-center
 				.panel.panel-default
 					.panel-body
-						{{ hint }}
+						p(ng-bind-html="hint")
