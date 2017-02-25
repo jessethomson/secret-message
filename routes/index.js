@@ -21,15 +21,18 @@ var REJECT_MESSAGES = [
 var SECRETS = [
 	{
 		MESSAGE: "Secret message number 1",
-		PIN: "1234"
+		PIN: "1234",
+		HINT: "hmm"
 	},
 	{
 		MESSAGE: "Secret message number 2",
-		PIN: "1235"
+		PIN: "1235",
+		HINT: "okay"
 	},
 	{
 		MESSAGE: "Secret message number 3",
-		PIN: "1236"
+		PIN: "1236",
+		HINT: "yeah"
 	}
 ];
 
@@ -69,6 +72,7 @@ router.get("/unlock/:pin", findGroup, function(req, res) {
 		else {
 			req.group.secretIndex = 0;
 		}
+		response.secretIndex = req.group.secretIndex;
 		req.group.incorrectAttempts = 0;
 	}
 	else {
@@ -89,7 +93,7 @@ router.get("/groups/:id", function(req, res) {
 		res.json(groups[req.params.id]);
 	}
 	else {
-		res.status(400).json({status: "error", message: "Group " + req.params.id + " does not exist!"});
+		res.json({status: "error", message: "Group " + req.params.id + " does not exist!"});
 	}
 });
 
@@ -118,6 +122,7 @@ router.get("/max/:value", function(req, res) {
 	}
 });
 
+
 router.get("/secrets/:index", function(req, res) {
 	
 	var secretIndex = req.params.index;
@@ -126,6 +131,30 @@ router.get("/secrets/:index", function(req, res) {
 	}
 	else {
 		res.status(400).json({message: "BAD REQUEST: Missing or invalid secret index"});
+	}
+});
+
+router.get("/secrets/:index/hint", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	if(secretIndex) {
+		res.json({hint:SECRETS[secretIndex].HINT});
+	}
+	else {
+		res.status(400).json({message: "BAD REQUEST: Missing or invalid secret index"});
+	}
+});
+
+router.get("/secrets/:index/hint/:newHint", function(req, res) {
+	
+	var secretIndex = req.params.index;
+	var newHint = req.params.newHint;
+	if(newHint && secretIndex) {
+		SECRETS[secretIndex].HINT = newHint;
+		res.status(200).json({status: "success", hint: SECRETS[secretIndex].HINT});
+	}
+	else {
+		res.status(400).json({status: "error", message: "BAD REQUEST: Missing or invalid pin value"});
 	}
 });
 

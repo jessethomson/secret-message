@@ -2,10 +2,16 @@ extends layout
 
 block content
 	div(ng-app="MyApp" ng-controller="MyController")
+		.row(style="text-align:right;")
+			.col-xs-2.col-xs-offset-8(ng-show="group")
+				label Secret: {{ secretNumber }}
+			.col-xs-2(ng-show="group")
+				button.btn.btn-info(type="button" ng-click="getHint()")
+					| ?
 		.row(style="margin-bottom:15px;")
-			.col-lg-2
+			.col-sm-2
 				label Group
-				input.form-control(type="text" ng-model="group")
+				input.form-control(type="text" ng-model="group" ng-change="setSecretIndex()")
 		.row
 			.col-lg-4.col-lg-offset-4.text-center
 				.panel.panel-default
@@ -21,3 +27,8 @@ block content
 				.panel(ng-show="result" ng-class="{'panel-success': result.success, 'panel-danger': !result.success}")
 					.panel-body
 						h4 {{ result.message }}
+		.row(ng-show="hint")
+			.col-lg-4.col-lg-offset-4.text-center
+				.panel.panel-default
+					.panel-body
+						{{ hint }}
